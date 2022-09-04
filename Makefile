@@ -1,2 +1,2 @@
 build:
-	gcc work_ogi.c -pthread -lncurses -o game
+	gcc game.c -pthread -lncurses -o game
