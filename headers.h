@@ -16,5 +16,5 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <netdb.h>
-#include <ifaddrs.h>
 #include <linux/if_link.h>
+#include <ifaddrs.h>
