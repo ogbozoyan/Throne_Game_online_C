@@ -1,3 +1,123 @@
+int print(struct Bike *car,int *x,int *y,uint32_t enemy_color){
+    if(car->side == (1)){
+      if(car->key == 's') {}
+      if(car->key == 'a') print_black_l(*x,*y);
+      if(car->key == 'd') print_black_r(*x,*y);
+      car -> key = 'w';
+      *y = (*y + info.yres - 1)%info.yres;
+    }
+    if(car->side == (2)){
+      if(car->key == 'w') {}
+      if(car->key == 'a') print_black_l(*x,*y);
+      if(car->key == 'd') print_black_r(*x,*y);
+      car -> key = 's';
+      *y = (*y+1)%info.yres;
+    }
+    if(car->side == (3)){
+      if(car->key == 'w') print_black_u(*x,*y);
+      if(car->key == 's') print_black_d(*x,*y);
+      if(car->key == 'd') {}
+      car -> key = 'a';
+      *x = (*x + info.xres -1)%info.xres;
+    }
+    if(car->side == (4)){
+      if(car->key == 'w') print_black_u(*x,*y);
+      if(car->key == 's') print_black_d(*x,*y);
+      if(car->key == 'a') {}
+      car -> key = 'd';
+      *x = (*x+1)%info.xres;
+    }
+
+      ptr[*y * info.xres_virtual + *x] = car->color;
+    border_print();
+
+    if(car->side == 1){
+      print_u(car,*x,*y,enemy_color);
+    }
+    if(car->side == 2){
+      print_d(car,*x,*y,enemy_color);
+    }
+    if(car->side == 3 ){
+      print_l(car,*x,*y,enemy_color);
+    }
+    if(car->side == 4){
+     print_r(car,*x,*y,enemy_color);
+    }
+}
+int syncwin(int who){
+  if(who == 'R'){
+      mvprintw(3,0, "Red win");
+      refresh();
+      sleep(5);
+      munmap(ptr, map_size);
+      close(fb);
+      endwin();
+      system("clear");
+      exit(0);
+    }
+  else if(who == 'B'){
+      mvprintw(3,0, "Blue win");
+      refresh();
+      sleep(5);
+      munmap(ptr, map_size);
+      close(fb);
+      endwin();
+     system("clear");
+      exit(0);
+      }
+  else if(who == 'N'){
+    mvprintw(3,0, "Draw");
+      refresh();
+      sleep(5);
+      munmap(ptr, map_size);
+      close(fb);
+      endwin();
+      system("clear");
+      exit(0);
+    }
+}
+int initialization(int *args,char **argv){
+
+    page_size = sysconf(_SC_PAGESIZE);
+      if ( 0 > (fb = open("/dev/fb0", O_RDWR))) {
+        perror("open");
+        return __LINE__;
+      }
+
+      if ( (-1) == ioctl(fb, FBIOGET_VSCREENINFO, &info)) {
+        perror("ioctl");
+        close(fb);
+        return __LINE__;
+      }
+      fb_size = sizeof(uint32_t) * info.xres_virtual * info.yres_virtual;
+      map_size = (fb_size + (page_size - 1 )) & (~(page_size-1));
+      srand(time(NULL));
+
+      if((args[0]>1920)||(args[1])>1080){
+        printf("Max value of X %d\tY %d\n",info.xres_virtual,info.yres_virtual);
+        munmap(ptr, map_size);
+        close(fb);
+        endwin();
+        exit(0);
+     }
+
+      info.xres = args[0];
+      info.yres = args[1];
+
+      if( NULL == initscr()) {
+          return __LINE__;
+        }
+      noecho();
+      curs_set(2);
+      keypad(stdscr,TRUE);
+      ptr = mmap(NULL, map_size, PROT_READ | PROT_WRITE, MAP_SHARED, fb, 0);
+      if ( MAP_FAILED == ptr ) {
+        perror("mmap");
+        close(fb);
+        return __LINE__;
+      }
+      system("clear");
+}
 void get_local_ip(){
 	FILE *f;
 	char line[100],*p ,*c;
@@ -44,38 +164,6 @@ void get_local_ip(){
 	freeifaddrs(ifaddr);
 	//return host;
 
-}
-int syncwin(int who){
-  if(who == 'R'){
-      mvprintw(3,0, "Red win");
-      refresh();
-      sleep(5);
-      munmap(ptr, map_size);
-      close(fb);
-      endwin();
-      system("clear");
-      exit(0);
-    }
-  else if(who == 'B'){
-      mvprintw(3,0, "Blue win");
-      refresh();
-      sleep(5);
-      munmap(ptr, map_size);
-      close(fb);
-      endwin();
-     system("clear");
-      exit(0);
-      }
-  else if(who == 'N'){
-    mvprintw(3,0, "Draw");
-      refresh();
-      sleep(5);
-      munmap(ptr, map_size);
-      close(fb);
-      endwin();
-      system("clear");
-      exit(0);
-    }
 }
 void* keypress_first(void *args){
   Bike* biker = (Bike*) args;
@@ -141,48 +229,6 @@ void* keypress_second(void *args){
 
       }
   }
-}
-int initialization(int *args,char **argv){
-
-    page_size = sysconf(_SC_PAGESIZE);
-      if ( 0 > (fb = open("/dev/fb0", O_RDWR))) {
-        perror("open");
-        return __LINE__;
-      }
-
-      if ( (-1) == ioctl(fb, FBIOGET_VSCREENINFO, &info)) {
-        perror("ioctl");
-        close(fb);
-        return __LINE__;
-      }
-      fb_size = sizeof(uint32_t) * info.xres_virtual * info.yres_virtual;
-      map_size = (fb_size + (page_size - 1 )) & (~(page_size-1));
-      srand(time(NULL));
-
-      if((args[0]>1920)||(args[1])>1080){
-        printf("Max value of X %d\tY %d\n",info.xres_virtual,info.yres_virtual);
-        munmap(ptr, map_size);
-        close(fb);
-        endwin();
-        exit(0);
-     }
-
-      info.xres = args[0];
-      info.yres = args[1];
-
-      if( NULL == initscr()) {
-          return __LINE__;
-        }
-      noecho();
-      curs_set(2);
-      keypad(stdscr,TRUE);
-      ptr = mmap(NULL, map_size, PROT_READ | PROT_WRITE, MAP_SHARED, fb, 0);
-      if ( MAP_FAILED == ptr ) {
-        perror("mmap");
-        close(fb);
-        return __LINE__;
-      }
-      system("clear");
 }
 void border_print(){
   for(int a = 0;a<info.yres;a++){
@@ -432,52 +478,6 @@ void print_d(struct Bike *car,int x,int y,uint32_t enemy_color){
   ptr[b*info.xres_virtual+tail[3]] = 0x00000000;
   ptr[b*info.xres_virtual+tail[4]] = 0x00000000;
   y = (b + 9)%info.yres;
-}
-int print(struct Bike *car,int *x,int *y,uint32_t enemy_color){
-    if(car->side == (1)){
-      if(car->key == 's') {}
-      if(car->key == 'a') print_black_l(*x,*y);
-      if(car->key == 'd') print_black_r(*x,*y);
-      car -> key = 'w';
-      *y = (*y + info.yres - 1)%info.yres;
-    }
-    if(car->side == (2)){
-      if(car->key == 'w') {}
-      if(car->key == 'a') print_black_l(*x,*y);
-      if(car->key == 'd') print_black_r(*x,*y);
-      car -> key = 's';
-      *y = (*y+1)%info.yres;
-    }
-    if(car->side == (3)){
-      if(car->key == 'w') print_black_u(*x,*y);
-      if(car->key == 's') print_black_d(*x,*y);
-      if(car->key == 'd') {}
-      car -> key = 'a';
-      *x = (*x + info.xres -1)%info.xres;
-    }
-    if(car->side == (4)){
-      if(car->key == 'w') print_black_u(*x,*y);
-      if(car->key == 's') print_black_d(*x,*y);
-      if(car->key == 'a') {}
-      car -> key = 'd';
-      *x = (*x+1)%info.xres;
-    }
-
-      ptr[*y * info.xres_virtual + *x] = car->color;
-    border_print();
-
-    if(car->side == 1){
-      print_u(car,*x,*y,enemy_color);
-    }
-    if(car->side == 2){
-      print_d(car,*x,*y,enemy_color);
-    }
-    if(car->side == 3 ){
-      print_l(car,*x,*y,enemy_color);
-    }
-    if(car->side == 4){
-     print_r(car,*x,*y,enemy_color);
-    }
 }
 void init_bikes_and_cikl(){
   system("clear");
